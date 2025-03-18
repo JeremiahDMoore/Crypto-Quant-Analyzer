@@ -29,3 +29,7 @@ export interface MarketSignal {
 export interface HistoricalData {
     prices: { date: string; price: number }[];
 }
+
+export interface TechnicalIndicators {
+  sma: number[];
+}

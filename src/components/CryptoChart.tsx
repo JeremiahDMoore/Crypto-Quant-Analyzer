@@ -51,7 +51,7 @@ export function CryptoChart({ data }: Props) {
             dataKey="price"
             stroke="#8884d8"
             strokeWidth={2}
-            dot={{ r: 3 }}
+            dot={false}
             name="Price"
             connectNulls={true}
           />

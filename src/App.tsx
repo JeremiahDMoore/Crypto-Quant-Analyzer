@@ -1,8 +1,7 @@
-// App.tsx
 import React, { useState } from 'react';
 import { useQuery } from 'react-query';
 import { Brain, LineChart, Newspaper, AlertCircle } from 'lucide-react';
-import { getCryptoData, getNews, analyzeMarket, getHistoricalData } from './services/api';
+import * as api from './services/api';
 import { CryptoChart } from './components/CryptoChart';
 import { NewsPanel } from './components/NewsPanel';
 import { SignalPanel } from './components/SignalPanel';
@@ -13,7 +12,7 @@ function App() {
 
   const { data: cryptoData, isLoading: isLoadingCrypto, error: cryptoError } = useQuery(
     ['crypto', selectedSymbol],
-    () => getCryptoData(selectedSymbol),
+    () => api.getCryptoData(selectedSymbol),
     {
       refetchInterval: 900000,
       retry: 3
@@ -22,7 +21,7 @@ function App() {
 
   const { data: news, isLoading: isLoadingNews, error: newsError } = useQuery(
     'news',
-    getNews,
+    api.getAllNews,
     {
       refetchInterval: 900000,
       retry: 3
@@ -31,7 +30,7 @@ function App() {
 
   const { data: historicalData, isLoading: isLoadingHistorical, error: historicalError } = useQuery<HistoricalData>(
     ['historical', selectedSymbol],
-    () => getHistoricalData(selectedSymbol),
+    () => api.getHistoricalData(selectedSymbol),
     {
       retry: 3,
     }
@@ -39,7 +38,15 @@ function App() {
 
   const { data: signal, isLoading: isLoadingSignal, error: signalError } = useQuery(
     ['signal', cryptoData, news],
-    () => (cryptoData && news ? analyzeMarket(cryptoData, news) : null),
+    () =>
+      cryptoData && news
+        ? Promise.all([
+            api.getMacroNews(), 
+            api.getTechnicalIndicators(cryptoData.symbol)
+          ]).then(
+            ([macroNews, technicalIndicators]) => api.analyzeMarket(cryptoData, news, macroNews, technicalIndicators)
+          )
+        : null,
     {
       enabled: !!cryptoData && !!news,
       retry: 2
@@ -89,25 +96,19 @@ function App() {
           <div className="mt-4 flex space-x-4">
             <button
               onClick={() => setSelectedSymbol('ETH')}
-              className={`px-4 py-2 border rounded-md ${
-                selectedSymbol === 'ETH' ? 'bg-primary text-white' : 'bg-surface text-text'
-              }`}
+              className={`px-4 py-2 border rounded-md ${selectedSymbol === 'ETH' ? 'bg-primary text-white' : 'bg-surface text-text'}`}
             >
               ETH
             </button>
             <button
               onClick={() => setSelectedSymbol('SOL')}
-              className={`px-4 py-2 border rounded-md ${
-                selectedSymbol === 'SOL' ? 'bg-primary text-white' : 'bg-surface text-text'
-              }`}
+              className={`px-4 py-2 border rounded-md ${selectedSymbol === 'SOL' ? 'bg-primary text-white' : 'bg-surface text-text'}`}
             >
               SOL
             </button>
             <button
               onClick={() => setSelectedSymbol('BTC')}
-              className={`px-4 py-2 border rounded-md ${
-                selectedSymbol === 'BTC' ? 'bg-primary text-white' : 'bg-surface text-text'
-              }`}
+              className={`px-4 py-2 border rounded-md ${selectedSymbol === 'BTC' ? 'bg-primary text-white' : 'bg-surface text-text'}`}
             >
               BTC
             </button>
@@ -116,6 +117,26 @@ function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
+<section className="mb-8">
+  <div className="bg-surface rounded-lg shadow-lg p-6 flex justify-around">
+    <div className="flex flex-col items-center">
+      <span className="text-sm text-gray-500">Current Price</span>
+      <span className="text-lg font-bold text-text">${cryptoData!.price}</span>
+    </div>
+    <div className="flex flex-col items-center">
+      <span className="text-sm text-gray-500">Change (24h)</span>
+      <span className="text-lg font-bold text-text">{cryptoData!.change24h}%</span>
+    </div>
+    <div className="flex flex-col items-center">
+      <span className="text-sm text-gray-500">Volume (24h)</span>
+      <span className="text-lg font-bold text-text">${cryptoData!.volume24h}</span>
+    </div>
+    <div className="flex flex-col items-center">
+      <span className="text-sm text-gray-500">Market Cap</span>
+      <span className="text-lg font-bold text-text">${cryptoData!.marketCap}</span>
+    </div>
+  </div>
+</section>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-8">
             <div className="bg-surface rounded-lg shadow-lg p-6">
