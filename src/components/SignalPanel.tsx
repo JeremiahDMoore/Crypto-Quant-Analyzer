@@ -30,7 +30,7 @@ export function SignalPanel({ signal }: Props) {
   };
 
   return (
-    <div className="bg-black rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <h2 className="text-2xl font-bold mb-4">Market Signals</h2>
       
       <div className="grid grid-cols-2 gap-6">
@@ -63,12 +63,12 @@ export function SignalPanel({ signal }: Props) {
             style={{ width: `${signal.confidence}%` }}
           ></div>
         </div>
-        <p className="text-right text-sm text-gray-600 mt-1">{signal.confidence}%</p>
+        <p className="text-right text-sm text-gray-400 mt-1">{signal.confidence}%</p>
       </div>
 
       <div className="mt-6">
         <h3 className="text-lg font-semibold">Analysis</h3>
-        <p className="text-gray-700 mt-2">{signal.reasoning}</p>
+        <div className="text-gray-300 mt-2 whitespace-pre-line">{signal.reasoning}</div>
       </div>
     </div>
   );

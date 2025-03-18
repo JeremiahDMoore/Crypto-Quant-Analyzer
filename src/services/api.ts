@@ -1,11 +1,7 @@
 import axios from 'axios';
 import type { CryptoData, NewsItem, MarketSignal, HistoricalData, TechnicalIndicators } from '../types';
-import { OpenAI } from 'openai';
-
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true
-});
+import Groq from 'groq-sdk';
+const groqClient = new Groq({ apiKey: import.meta.env.VITE_GROQ_API_KEY, dangerouslyAllowBrowser: true });
 
 const COINGECKO_API = 'https://api.coingecko.com/api/v3';
 
@@ -273,30 +269,26 @@ export async function analyzeMarket(
   technicalIndicators: TechnicalIndicators
 ): Promise<MarketSignal> {
   try {
-    if (!import.meta.env.VITE_OPENAI_API_KEY) {
-      throw new Error('OpenAI API key is not configured. Please add VITE_OPENAI_API_KEY to your .env file.');
-    }
-
     const prompt = `
 Analyze the following market data for ${cryptoData.symbol}:
-
+    
 • Market Data:
    - Current Price: $${cryptoData.price}
    - 24h Change: ${cryptoData.change24h}%
    - 24h Volume: $${cryptoData.volume24h}
    - Market Cap: $${cryptoData.marketCap}
-
+    
 • Technical Indicators (Simple Moving Average):
    - Recent SMA Values: ${technicalIndicators.sma.slice(-5).join(', ')}
-
+    
 • Crypto News:
 ${news.map(item => `   - ${item.title}: ${item.summary}`).join('\n')}
-
+    
 • Macro Economic News:
 ${macroNews.map(item => `   - ${item.title}: ${item.summary}`).join('\n')}
-
-IMPORTANT: DO NOT USE MARKDOWN Use expert trading instinct, technical analysis, market trends, and all data provided to provide a concise explanation of your analysis and decision. use bullet points and line breaks to output everything in a clear and organized manner.
-
+    
+IMPORTANT: DO NOT USE MARKDOWN Use expert trading instinct, technical analysis, market trends, and all data provided to provide a concise explanation of your analysis and decision. Use bullet points and line breaks to output everything in a clear and organized manner.
+    
 Please provide:
 • Short-term trading signal (buy/sell/hold)
 • Long-term trading signal (buy/sell/hold)
@@ -304,12 +296,20 @@ Please provide:
 • A concise explanation of your analysis and decision.
     `;
 
-    const completion = await openai.chat.completions.create({
+    const chatCompletion = await groqClient.chat.completions.create({
       messages: [{ role: "user", content: prompt }],
-      model: "gpt-4o",
+      model: "deepseek-r1-distill-qwen-32b",
+      temperature: 0.6,
+      max_completion_tokens: 4096,
+      top_p: 0.95,
+      stream: true,
+      stop: null
     });
 
-    const analysis = completion.choices[0].message.content;
+    let analysis = '';
+    for await (const chunk of chatCompletion) {
+      analysis += chunk.choices[0]?.delta?.content || '';
+    }
     
     const signals: MarketSignal = {
       symbol: cryptoData.symbol,
