@@ -1,6 +1,6 @@
 // CryptoChart.tsx
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 import { format } from 'date-fns';
 import type { HistoricalData } from '../types';
 
@@ -43,6 +43,7 @@ export function CryptoChart({ data }: Props) {
               border: '1px solid #ccc',
               borderRadius: '4px',
             }}
+            cursor={{ stroke: 'rgba(0,0,0,0.9)', strokeDasharray: '3 3' }}
           />
           <Legend verticalAlign="top" height={36} />
           <Line
@@ -54,6 +55,9 @@ export function CryptoChart({ data }: Props) {
             name="Price"
             connectNulls={true}
           />
+          {chartData.length >= 9 && (
+            <ReferenceLine x={chartData[8].date} stroke="#ddd" strokeDasharray="3 3" name="9th" />
+          )}
           <Line
             type="monotone"
             dataKey="sma50"
