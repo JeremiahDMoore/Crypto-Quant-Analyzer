@@ -14,10 +14,10 @@ export const NewsPanel: React.FC<NewsPanelProps> = ({ news }) => {
           href={item.url} 
           target="_blank" 
           rel="noopener noreferrer" 
-          className="block bg-white p-4 rounded-lg shadow hover:bg-gray-200 transition-colors"
+          className="block bg-surface p-4 rounded-lg shadow hover:bg-border transition-colors"
         >
-          <h3 className="text-xl font-semibold text-blue-600">{item.title}</h3>
-          <p className="mt-2 text-gray-700">{item.summary}</p>
+          <h3 className="text-xl font-semibold text-primary">{item.title}</h3>
+          <p className="mt-2 text-text">{item.summary}</p>
         </a>
       ))}
     </div>

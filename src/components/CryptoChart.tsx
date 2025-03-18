@@ -39,11 +39,11 @@ export function CryptoChart({ data }: Props) {
           <YAxis domain={['auto', 'auto']} />
           <Tooltip
             contentStyle={{
-              backgroundColor: '#fff',
-              border: '1px solid #ccc',
+              backgroundColor: '#1E1E1E',
+              border: '1px solid #333333',
               borderRadius: '4px',
             }}
-            cursor={{ stroke: 'rgba(0,0,0,0.9)', strokeDasharray: '3 3' }}
+            cursor={{ stroke: '#E0E0E0', strokeDasharray: '3 3' }}
           />
           <Legend verticalAlign="top" height={36} />
           <Line

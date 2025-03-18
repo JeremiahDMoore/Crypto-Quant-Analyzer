@@ -10,11 +10,11 @@ export function SignalPanel({ signal }: Props) {
   const getSignalIcon = (signal: 'buy' | 'sell' | 'hold') => {
     switch (signal) {
       case 'buy':
-        return <TrendingUp className="text-green-500" size={24} />;
+        return <TrendingUp className="text-secondary" size={24} />;
       case 'sell':
-        return <TrendingDown className="text-red-500" size={24} />;
+        return <TrendingDown className="text-error" size={24} />;
       default:
-        return <Minus className="text-gray-500" size={24} />;
+        return <Minus className="text-text" size={24} />;
     }
   };
 
@@ -30,7 +30,7 @@ export function SignalPanel({ signal }: Props) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
+    <div className="bg-black rounded-lg shadow-lg p-6">
       <h2 className="text-2xl font-bold mb-4">Market Signals</h2>
       
       <div className="grid grid-cols-2 gap-6">
@@ -57,9 +57,9 @@ export function SignalPanel({ signal }: Props) {
 
       <div className="mt-6">
         <h3 className="text-lg font-semibold">AI Confidence</h3>
-        <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+        <div className="w-full bg-gray-300 rounded-full h-2.5 mt-2">
           <div 
-            className="bg-blue-600 h-2.5 rounded-full" 
+            className="bg-purple-600 h-2.5 rounded-full" 
             style={{ width: `${signal.confidence}%` }}
           ></div>
         </div>
