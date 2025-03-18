@@ -1,9 +1,11 @@
+// types.ts
 export interface CryptoData {
   symbol: string;
   price: number;
   change24h: number;
   volume24h: number;
   marketCap: number;
+  timestamp: string; // Add timestamp
 }
 
 export interface NewsItem {
@@ -21,4 +23,9 @@ export interface MarketSignal {
   confidence: number;
   reasoning: string;
   timestamp: string;
+}
+
+//Historical Data
+export interface HistoricalData {
+    prices: { date: string; price: number }[];
 }

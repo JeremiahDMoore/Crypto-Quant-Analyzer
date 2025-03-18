@@ -1,5 +1,6 @@
+// services/api.ts
 import axios from 'axios';
-import type { CryptoData, NewsItem, MarketSignal } from '../types';
+import type { CryptoData, NewsItem, MarketSignal, HistoricalData } from '../types'; // Import HistoricalData
 import { OpenAI } from 'openai';
 
 const openai = new OpenAI({
@@ -7,13 +8,12 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true
 });
 
-// Use CoinGecko's public API endpoints
 const COINGECKO_API = 'https://api.coingecko.com/api/v3';
 
 const symbolToId: Record<string, string> = {
   'BTC': 'bitcoin',
   'ETH': 'ethereum',
-  'SOL': 'solana', // Added SOL mapping
+  'SOL': 'solana',
 };
 
 export async function getCryptoData(symbol: string): Promise<CryptoData> {
@@ -23,7 +23,6 @@ export async function getCryptoData(symbol: string): Promise<CryptoData> {
       throw new Error(`Unsupported symbol: ${symbol}`);
     }
 
-    // Use the coins/markets endpoint for more comprehensive data
     const response = await axios.get(`${COINGECKO_API}/coins/markets`, {
       params: {
         vs_currency: 'usd',
@@ -42,20 +41,48 @@ export async function getCryptoData(symbol: string): Promise<CryptoData> {
       change24h: data.price_change_percentage_24h ?? 0,
       volume24h: data.total_volume ?? 0,
       marketCap: data.market_cap ?? 0,
+      timestamp: new Date().toISOString(), // Add timestamp
     };
   } catch (error) {
     console.error('Error fetching crypto data:', error);
     throw new Error('Failed to fetch crypto data. Please try again later.');
   }
 }
+//New historical data function.
+export async function getHistoricalData(symbol: string): Promise<HistoricalData> {
+    const coinId = symbolToId[symbol];
+    if (!coinId) {
+        throw new Error(`Unsupported symbol: ${symbol}`);
+    }
+
+    try {
+        const response = await axios.get(`${COINGECKO_API}/coins/${coinId}/market_chart`, {
+            params: {
+                vs_currency: 'usd',
+                days: 7, // Fetch data for the last 7 days
+                interval: 'daily'
+            },
+        });
+
+      const prices = response.data.prices.map(([timestamp, price]: [number, number]) => ({
+          date: new Date(timestamp).toISOString(),
+          price,
+      }));
+
+      return { prices };
+
+
+    } catch (error) {
+        console.error('Error fetching historical data:', error);
+        throw new Error('Failed to fetch historical data. Please try again.');
+    }
+}
 
 export async function getNews(): Promise<NewsItem[]> {
   try {
-    // Use the trending endpoint which doesn't require authentication
     const response = await axios.get(`${COINGECKO_API}/search/trending`);
     const trending = response.data.coins;
 
-    // Create news-like items from trending data
     return trending.slice(0, 5).map((coin: any) => ({
       title: `${coin.item.name} (${coin.item.symbol.toUpperCase()}) is trending`,
       url: `https://www.coingecko.com/en/coins/${coin.item.id}`,
@@ -99,12 +126,11 @@ export async function analyzeMarket(
 
     const completion = await openai.chat.completions.create({
       messages: [{ role: "user", content: prompt }],
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o",
     });
 
     const analysis = completion.choices[0].message.content;
     
-    // Parse the AI response (simplified for example)
     const signals = {
       symbol: cryptoData.symbol,
       shortTermSignal: 'hold' as const,
