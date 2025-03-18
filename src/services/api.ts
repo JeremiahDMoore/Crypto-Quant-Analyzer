@@ -59,16 +59,20 @@ export async function getHistoricalData(symbol: string): Promise<HistoricalData>
         const response = await axios.get(`${COINGECKO_API}/coins/${coinId}/market_chart`, {
             params: {
                 vs_currency: 'usd',
-                days: 7, // Fetch data for the last 7 days
-                interval: 'daily'
+                days: 0.09375, // 135 minutes total timeline (10 data points at 15-minute intervals)
             },
         });
 
-      const prices = response.data.prices.map(([timestamp, price]: [number, number]) => ({
-          date: new Date(timestamp).toISOString(),
-          price,
+      const pricesRaw = response.data.prices.map(([timestamp, price]: [number, number]) => ({
+        date: new Date(timestamp).toISOString(),
+        price,
       }));
-
+      let prices = pricesRaw;
+      if (pricesRaw.length > 10) {
+        const step = Math.floor(pricesRaw.length / 10);
+        prices = pricesRaw.filter((item: { date: string; price: number }, i: number) => i % step === 0).slice(0, 10);
+      }
+      
       return { prices };
 
 

@@ -10,15 +10,11 @@ interface Props {
 
 // Helper function to calculate Simple Moving Average (SMA)
 const calculateSMA = (data: { date: string; price: number }[], period: number): { date: string; sma: number }[] => {
-    if (data.length < period) {
-        return []; // Not enough data to calculate SMA
-    }
-
     const smaData: { date: string; sma: number }[] = [];
-    for (let i = period - 1; i < data.length; i++) {
-        const window = data.slice(i - period + 1, i + 1);
+    for (let i = 0; i < data.length; i++) {
+        const window = data.slice(Math.max(0, i - period + 1), i + 1);
         const sum = window.reduce((acc, val) => acc + val.price, 0);
-        smaData.push({ date: data[i].date, sma: sum / period });
+        smaData.push({ date: data[i].date, sma: sum / window.length });
     }
     return smaData;
 };
@@ -26,16 +22,13 @@ const calculateSMA = (data: { date: string; price: number }[], period: number): 
 export function CryptoChart({ data }: Props) {
 
   // Calculate moving averages
-    const sma7 = calculateSMA(data.prices, 7);
+    const sma50 = calculateSMA(data.prices, 50);
     // Merge price data with moving averages
-    const chartData = data.prices.map(priceData => {
-      const sma7Data = sma7.find(sma => sma.date === priceData.date);
-      return {
-          date: format(new Date(priceData.date), 'MM-dd'),
-          price: priceData.price,
-          sma7: sma7Data ? sma7Data.sma : null, // 7-day SMA
-      };
-  });
+    const chartData = data.prices.map((priceData, index) => ({
+      date: format(new Date(priceData.date), 'HH:mm'),
+      price: priceData.price,
+      sma50: sma50[index] ? sma50[index].sma : null, // 50-day MA
+    }));
 
   return (
     <div className="h-[400px] w-full">
@@ -63,12 +56,13 @@ export function CryptoChart({ data }: Props) {
           />
           <Line
             type="monotone"
-            dataKey="sma7"
-            stroke="#82ca9d"
+            dataKey="sma50"
+            stroke="#FF5733"
             strokeWidth={2}
-            dot={{ r: 0 }}
-            name="7-Day SMA"
+            dot={false}
+            name="50-Day MA"
             connectNulls={true}
+            strokeDasharray="5 5"
           />
         </LineChart>
       </ResponsiveContainer>
